@@ -12,7 +12,11 @@ def create_llm_prompt_from_json(json_string):
     """
     try:
         data = json.loads(json_string)
-        cells = data.get('cells', [])
+        # Handle both a list of cells, or an object with a "cells" key
+        if isinstance(data, list):
+            cells = data
+        else:
+            cells = data.get('cells', [])
     except json.JSONDecodeError:
         return "Error: Invalid JSON format."
 
@@ -78,3 +82,26 @@ hello_world()
     assert "".join(formatted_prompt.split()) == "".join(expected_output.split())
 
     print("\\n\\nTest passed!")
+
+    print("\\n--- Testing raw list input ---")
+    # Test case for raw list input
+    sample_json_list_string = """
+    [
+        {
+            "cell_id": "list-cell-1",
+            "source": ["print('hello from list')"]
+        }
+    ]
+    """
+
+    formatted_prompt_from_list = create_llm_prompt_from_json(sample_json_list_string)
+    print(formatted_prompt_from_list)
+
+    expected_list_output = """---
+Cell ID: list-cell-1
+Code:
+print('hello from list')
+---"""
+
+    assert "".join(formatted_prompt_from_list.split()) == "".join(expected_list_output.split())
+    print("\\nTest for raw list passed!")
